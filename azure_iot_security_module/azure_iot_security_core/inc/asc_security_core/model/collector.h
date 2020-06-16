@@ -28,7 +28,7 @@
 #define RECORD_VALUE_MAX_LENGTH 512
 #define COLLECTOR_NAME_LENGTH 20
 
-typedef struct collector_internal_ptr collector_internal_t;
+typedef struct collector_internal collector_internal_t;
 
 /**
  * @brief Initialize the collector internal
@@ -60,7 +60,7 @@ typedef IOTSECURITY_RESULT (*COLLECT_FUNCTION)(collector_internal_t* collector_i
 typedef void (*DEINIT_FUNCTION)(collector_internal_t* collector_internal_ptr);
 
 
-typedef struct collector_internal_ptr {
+struct collector_internal {
     char name[COLLECTOR_NAME_LENGTH];
     COLLECTOR_TYPE type;
     COLLECTOR_PRIORITY priority;
@@ -69,7 +69,7 @@ typedef struct collector_internal_ptr {
     DEINIT_FUNCTION deinit_function;
 
     void* state;
-} collector_internal_t;
+};
 
 
 typedef enum COLLECTOR_STATUS_TAG {
@@ -92,8 +92,8 @@ typedef struct collector {
     linked_list_event_t event_list;
 } collector_t;
 
-OBJECT_POOL_DECLARATIONS(collector_t, COLLECTOR_OBJECT_POOL_COUNT);
-LINKED_LIST_DECLARATIONS(collector_t);
+OBJECT_POOL_DECLARATIONS(collector_t, COLLECTOR_OBJECT_POOL_COUNT)
+LINKED_LIST_DECLARATIONS(collector_t)
 
 
 /**

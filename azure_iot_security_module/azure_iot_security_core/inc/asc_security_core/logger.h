@@ -21,11 +21,11 @@
 
 
 #if LOG_LEVEL == LOG_LEVEL_NOTSET
-    #define log_debug(message, ...)
-    #define log_info(message, ...)
-    #define log_warn(message, ...)
-    #define log_error(message, ...)
-    #define log_fatal(message, ...)
+    #define log_debug(...)
+    #define log_info(...)
+    #define log_warn(...)
+    #define log_error(...)
+    #define log_fatal(...)
 #else
     #include <stdio.h>
     #include <string.h>
@@ -33,37 +33,37 @@
     #include <stdint.h>
 
     #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-    #define MDC_FORMAT " [%s/%s:%d] "
+    #define MDC_FORMAT "%s [%s/%s:%d] "
 
     bool logger_init();
     void logger_deinit();
-    void logger_log(const char* message, ...);
+    void logger_log(const char* level, ...);
 
     // define log by severity according to LOG_LEVEL
     #if LOG_LEVEL > LOG_LEVEL_DEBUG
-        #define log_debug(message, ...)
+        #define log_debug(...)
     #else
-        #define log_debug(message, ...)     logger_log("DEBUG" MDC_FORMAT message "\n", __FILENAME__, __func__, __LINE__, ##__VA_ARGS__)
+        #define log_debug(...)     logger_log("DEBUG", ##__VA_ARGS__)
     #endif
     #if LOG_LEVEL > LOG_LEVEL_INFO
-        #define log_info(message, ...)
+        #define log_info(...)
     #else
-        #define log_info(message, ...)      logger_log("INFO " MDC_FORMAT message "\n", __FILENAME__, __func__, __LINE__, ##__VA_ARGS__)
+        #define log_info(...)      logger_log("INFO", ##__VA_ARGS__)
     #endif
     #if LOG_LEVEL > LOG_LEVEL_WARN
-        #define log_warn(message, ...)
+        #define log_warn(...)
     #else
-        #define log_warn(message, ...)      logger_log("WARN " MDC_FORMAT message "\n", __FILENAME__, __func__, __LINE__, ##__VA_ARGS__)
+        #define log_warn(...)      logger_log("WARN", ##__VA_ARGS__)
     #endif
     #if LOG_LEVEL > LOG_LEVEL_ERROR
-        #define log_error(message, ...)
+        #define log_error(...)
     #else
-        #define log_error(message, ...)     logger_log("ERROR" MDC_FORMAT message "\n", __FILENAME__, __func__, __LINE__, ##__VA_ARGS__)
+        #define log_error(...)     logger_log("ERROR", ##__VA_ARGS__)
     #endif
     #if LOG_LEVEL > LOG_LEVEL_FATAL
-        #define log_fatal(message, ...)
+        #define log_fatal(...)
     #else
-        #define log_fatal(message, ...)     logger_log("FATAL" MDC_FORMAT message "\n", __FILENAME__, __func__, __LINE__, ##__VA_ARGS__)
+        #define log_fatal(...)     logger_log("FATAL", ##__VA_ARGS__)
     #endif
 #endif
 

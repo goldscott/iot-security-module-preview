@@ -16,10 +16,10 @@
 #include "asc_security_core/utils/collection/stack.h"
 #include "asc_security_core/configuration.h"
 
-#ifdef USE_OBJECT_POOL
-#include "asc_security_core/object_pool_static.h"
-#else
+#ifdef DYNAMIC_MEMORY_ENABLED
 #include "asc_security_core/object_pool_dynamic.h"
+#else
+#include "asc_security_core/object_pool_static.h"
 #endif
 
 #define object_pool_get(type)              object_pool_##type##_get()

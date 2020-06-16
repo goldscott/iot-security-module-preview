@@ -27,14 +27,14 @@ typedef struct priority_collectors {
     linked_list_collector_t collector_list;
 } priority_collectors_t;
 
-typedef struct collector_collection {
+struct collector_collection {
     COLLECTION_INTERFACE(struct collector_collection);
 
     priority_collectors_t collector_array[COLLECTOR_PRIORITY_COUNT];
-} collector_collection_t;
+};
 
-OBJECT_POOL_DECLARATIONS(collector_collection_t, COLLECTOR_COLLECTION_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(collector_collection_t, COLLECTOR_COLLECTION_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(collector_collection_t, COLLECTOR_COLLECTION_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(collector_collection_t, COLLECTOR_COLLECTION_OBJECT_POOL_COUNT)
 
 static IOTSECURITY_RESULT _collector_collection_init_collector_lists(collector_collection_t* collector_collection_ptr, INIT_FUNCTION* collector_init_array, uint32_t array_size);
 static void _collector_collection_deinit_collector_lists(linked_list_collector_t_handle collector_list_ptr);
@@ -44,6 +44,8 @@ collector_collection_t* collector_collection_init() {
     log_debug("Init collector collection");
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
     collector_collection_t* collector_collection_ptr = NULL;
+    INIT_FUNCTION* collector_init_array = NULL;
+    uint32_t collector_init_array_size = 0;
 
     collector_collection_ptr = object_pool_get(collector_collection_t);
     if (collector_collection_ptr == NULL) {
@@ -53,9 +55,6 @@ collector_collection_t* collector_collection_init() {
     }
 
     memset(collector_collection_ptr, 0, sizeof(collector_collection_t));
-
-    INIT_FUNCTION* collector_init_array = NULL;
-    uint32_t collector_init_array_size = 0;
 
     result = collector_collection_factory_get_initialization_array(&collector_init_array, &collector_init_array_size);
     if (result != IOTSECURITY_RESULT_OK) {

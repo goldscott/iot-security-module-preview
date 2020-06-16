@@ -13,8 +13,8 @@
 #include "asc_security_core/logger.h"
 #include "asc_security_core/model/collector.h"
 
-OBJECT_POOL_DEFINITIONS(collector_t, COLLECTOR_OBJECT_POOL_COUNT);
-LINKED_LIST_DEFINITIONS(collector_t);
+OBJECT_POOL_DEFINITIONS(collector_t, COLLECTOR_OBJECT_POOL_COUNT)
+LINKED_LIST_DEFINITIONS(collector_t)
 
 collector_t* collector_init(INIT_FUNCTION collector_internal_init_function) {
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;

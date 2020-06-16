@@ -5,13 +5,8 @@ cmake_policy(SET CMP0079 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# set Security Module version
-FILE(READ ${CMAKE_CURRENT_LIST_DIR}/version.txt asc_security_azurertos_VERSION)
-message(STATUS "Security Module Version: ${asc_security_azurertos_VERSION}")
-
-# Project name, version and languages
+# Project name and languages
 project(azure_iot_security_module
-    VERSION ${asc_security_azurertos_VERSION}
     LANGUAGES C ASM
 )
 
@@ -21,14 +16,6 @@ add_library("azrtos::${PROJECT_NAME}" ALIAS ${PROJECT_NAME})
 
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
-    -DSECURITY_MODULE_VERSION=${asc_security_azurertos_VERSION}
-    -DCOLLECTOR_SYSTEM_INFORMATION_ENABLED
-    -DCOLLECTOR_CONNECTION_CREATE_ENABLED
-    -DCOLLECTOR_HEARTBEAT_ENABLED
-    -DASC_CORE_MAX_EVENTS_IN_MEMORY=32
-    -DASC_MESSAGE_MAX_SIZE=6128
-    -DASC_EVENT_MAX_SIZE=2048
-    -DUSE_OBJECT_POOL
     -DLOG_LEVEL=2
 )
 

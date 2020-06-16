@@ -9,30 +9,26 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef OBJECT_POOL_DYNAMIC_H
-#define OBJECT_POOL_DYNAMIC_H
+#ifndef _MTI_H_
+#define _MTI_H_
 
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
+/**
+ * @brief Create Message Type Indicator in format "X.Y-E-S",
+ * where "Major.Minor-Encoding-Source". All fields are numeric
+ */
 
-#define OBJECT_POOL_DECLARATIONS(type, pool_size)\
-type* object_pool_##type##_get();\
-void object_pool_##type##_free(type* object);\
+#define MTI_NAME "mti"
+#define SCHEMA_MAJOR_VER "1"
+#define SCHEMA_MINOR_VER "0"
 
-#define OBJECT_POOL_DEFINITIONS(type, pool_size)\
-static uint32_t _##type##_pool_size = pool_size;\
-static uint32_t _##type##_current_pool_size = 0;\
-type* object_pool_##type##_get() {\
-    if ((_##type##_current_pool_size) >= (_##type##_pool_size)) {\
-        return NULL;\
-    }\
-    (_##type##_current_pool_size)++;\
-    return (type*)malloc(sizeof(type));\
-}\
-void object_pool_##type##_free(type* obj) {\
-    free(obj);\
-    (_##type##_current_pool_size)--;\
-}\
+#define JSON_ENCODING   "0"
+#define FLAT_BUFFER     "1"
 
-#endif /* OBJECT_POOL_DYNAMIC_H */
+#define SCHEMA_ENCODING JSON_ENCODING
+
+#define MTI_CORE SCHEMA_MAJOR_VER "." SCHEMA_MINOR_VER "-" SCHEMA_ENCODING "-"
+
+// Existing sources
+#define MTI_SOURCE_AZURERTOS "0"
+
+#endif /* _MTI_H_ */

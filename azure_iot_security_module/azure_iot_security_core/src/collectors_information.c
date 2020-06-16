@@ -36,8 +36,8 @@ typedef struct notifier_container_t {
     collector_info_t info[COLLECTOR_TYPE_COUNT];
 } notifier_container_t;
 
-OBJECT_POOL_DECLARATIONS(notifier_container_t, 1);
-OBJECT_POOL_DEFINITIONS(notifier_container_t, 1);
+OBJECT_POOL_DECLARATIONS(notifier_container_t, 1)
+OBJECT_POOL_DEFINITIONS(notifier_container_t, 1)
 
 static void _collector_info_cb(notifier_t *notifier, int message_num, void *payload) {
     notifier_container_t *container = containerof(notifier, notifier_container_t, notifier);
@@ -49,9 +49,7 @@ static void _collector_info_cb(notifier_t *notifier, int message_num, void *payl
         return;
     }
 
-    if (collector_internal_ptr->type < 0 ||
-        collector_internal_ptr->type >= COLLECTOR_TYPE_COUNT ||
-        collector_internal_ptr->priority < 0 ||
+    if (collector_internal_ptr->type >= COLLECTOR_TYPE_COUNT ||
         collector_internal_ptr->priority >= COLLECTOR_PRIORITY_COUNT) {
         log_error("Wrong collector type=[%d] or priority=[%d]", collector_internal_ptr->type, collector_internal_ptr->priority);
     } else {

@@ -19,7 +19,7 @@
 #define AF_INET6 3
 
 static const char *inet_ntop(int af, const void *a0, char *s, uint32_t l);
-static int isdigit(int c);
+static int is_digit(int c);
 static int hexval(unsigned c);
 static int inet_pton(int af, const char *s, void *a0);
 
@@ -81,7 +81,7 @@ static const char *inet_ntop(int af, const void *a0, char *s, uint32_t l) {
 }
 
 // https://github.com/bpowers/musl/blob/master/src/ctype/isdigit.c
-static int isdigit(int c) {
+static int is_digit(int c) {
 	return (unsigned)c-'0' < 10;
 }
 
@@ -101,7 +101,7 @@ static int inet_pton(int af, const char *s, void *a0) {
 
     if (af==AF_INET) {
         for (i=0; i<4; i++) {
-            for (v=j=0; j<3 && isdigit(s[j]); j++)
+            for (v=j=0; j<3 && is_digit(s[j]); j++)
                 v = 10*v + s[j]-'0';
             if (j==0 || (j>1 && s[0]=='0') || v>255) return 0;
             a[i] = (unsigned char)v;

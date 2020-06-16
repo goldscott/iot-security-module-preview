@@ -19,12 +19,12 @@
 
 #define SCHEMA_HEARTBEAT_OBJECT_POOL_COUNT ASC_COLLECTOR_HEARTBEAT_MAX_OBJECTS_IN_CACHE
 
-typedef struct schema_heartbeat {
+struct schema_heartbeat {
     COLLECTION_INTERFACE(struct schema_heartbeat);
-} schema_heartbeat_t;
+};
 
-OBJECT_POOL_DECLARATIONS(schema_heartbeat_t, SCHEMA_HEARTBEAT_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(schema_heartbeat_t, SCHEMA_HEARTBEAT_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(schema_heartbeat_t, SCHEMA_HEARTBEAT_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(schema_heartbeat_t, SCHEMA_HEARTBEAT_OBJECT_POOL_COUNT)
 
 
 schema_heartbeat_t* schema_heartbeat_init() {

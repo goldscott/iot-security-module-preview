@@ -24,25 +24,21 @@
 
 #define CORE_OBJECT_POOL_COUNT 1
 
-// Security Module Version
-#ifndef ASC_SECURITY_MODULE_VERSION
-#define ASC_SECURITY_MODULE_VERSION "0.0.1"
-#endif
 
-typedef struct core {
+struct core {
     COLLECTION_INTERFACE(struct core);
 
     asc_span agent_id;
     asc_span agent_version;
     collector_collection_t* collector_collection_ptr;
-} core_t;
+};
 
-OBJECT_POOL_DECLARATIONS(core_t, CORE_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(core_t, CORE_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(core_t, CORE_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(core_t, CORE_OBJECT_POOL_COUNT)
 
-OBJECT_POOL_DEFINITIONS(security_message_t, SECURITY_MESSAGE_OBJECT_POOL_COUNT);
+OBJECT_POOL_DEFINITIONS(security_message_t, SECURITY_MESSAGE_OBJECT_POOL_COUNT)
 
-LINKED_LIST_DEFINITIONS(security_message_t);
+LINKED_LIST_DEFINITIONS(security_message_t)
 
 static IOTSECURITY_RESULT _core_get_message(linked_list_security_message_t* message_list, message_t* message_ptr);
 
@@ -73,7 +69,7 @@ core_t* core_init() {
         goto cleanup;
     }
 
-    core_ptr->agent_version = asc_span_from_str(ASC_SECURITY_MODULE_VERSION);
+    core_ptr->agent_version = asc_span_from_str(SECURITY_MODULE_VERSION);
     if (asc_span_is_content_equal(ASC_SPAN_NULL, core_ptr->agent_version)) {
         log_error("Failed to set client core_t agent_id");
         result = IOTSECURITY_RESULT_EXCEPTION;
@@ -152,6 +148,9 @@ IOTSECURITY_RESULT core_get(core_t* core_ptr, linked_list_security_message_t* ou
     event_t* event_ptr = NULL;
     collector_t* current_collector = NULL;
     PRIORITY_COLLECTORS_HANDLE prioritized_collectors = NULL;
+    linked_list_security_message_t message_list = { 0 };
+    linked_list_security_message_t* message_list_handle = &message_list;
+    uint32_t num_of_messages_in_queue = 0;
 
     message_t* message_ptr = message_init((const char *)asc_span_ptr(core_ptr->agent_id), (const char *)asc_span_ptr(core_ptr->agent_version));
     if (message_ptr == NULL) {
@@ -160,11 +159,7 @@ IOTSECURITY_RESULT core_get(core_t* core_ptr, linked_list_security_message_t* ou
         goto cleanup;
     }
 
-    linked_list_security_message_t message_list = { 0 };
-    linked_list_security_message_t* message_list_handle = &message_list;
     linked_list_security_message_t_init(message_list_handle, object_pool_security_message_t_free);
-
-    uint32_t num_of_messages_in_queue = 0;
 
     prioritized_collectors = collector_collection_get_head_priority(core_ptr->collector_collection_ptr);
 

@@ -38,8 +38,8 @@ typedef enum EVENT_STATUS_TAG {
 
 typedef struct event event_t;
 
-OBJECT_POOL_DECLARATIONS(event_t, EVENT_OBJECT_POOL_COUNT);
-LINKED_LIST_DECLARATIONS(event_t);
+OBJECT_POOL_DECLARATIONS(event_t, EVENT_OBJECT_POOL_COUNT)
+LINKED_LIST_DECLARATIONS(event_t)
 
 typedef bool (*EVENT_PREDICATE)(event_t* event, void* additional_params);
 

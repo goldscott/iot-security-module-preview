@@ -46,8 +46,8 @@ const char* transport_protocol_to_str(TRANSPORT_PROTOCOL protocol);
 
 typedef struct schema_connection_create connection_create_t;
 
-LINKED_LIST_DECLARATIONS(connection_create_t);
-HASHSET_DECLARATIONS(connection_create_t);
+LINKED_LIST_DECLARATIONS(connection_create_t)
+HASHSET_DECLARATIONS(connection_create_t)
 
 /**
  * @brief Initialize ConnectionCreate Schema

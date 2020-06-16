@@ -25,8 +25,8 @@ typedef struct security_message {
     char data[ASC_MESSAGE_MAX_SIZE];
 } security_message_t;
 
-OBJECT_POOL_DECLARATIONS(security_message_t, SECURITY_MESSAGE_OBJECT_POOL_COUNT);
-LINKED_LIST_DECLARATIONS(security_message_t);
+OBJECT_POOL_DECLARATIONS(security_message_t, SECURITY_MESSAGE_OBJECT_POOL_COUNT)
+LINKED_LIST_DECLARATIONS(security_message_t)
 
 typedef struct core core_t;
 

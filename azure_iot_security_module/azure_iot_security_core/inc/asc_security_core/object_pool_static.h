@@ -17,7 +17,7 @@
 #include <stdint.h>
 
 #define OBJECT_POOL_DEFINITIONS(type, pool_size)\
-STACK_DEFINITIONS(type);\
+STACK_DEFINITIONS(type)\
 static bool _##type##_is_pool_initialized = false;\
 static type _##type##_pool[pool_size];\
 static stack_##type _stack_##type = {0};\
@@ -30,8 +30,8 @@ void object_pool_##type##_init() {\
     _stack_##type##_handle = &(_stack_##type);\
     stack_##type##_init(_stack_##type##_handle);\
     for (uint32_t i=0; i<pool_size; i++) {\
-        type* object = _##type##_pool + i;\
-        stack_##type##_push(_stack_##type##_handle, object);\
+        type* obj = _##type##_pool + i;\
+        stack_##type##_push(_stack_##type##_handle, obj);\
   }\
 \
     _##type##_is_pool_initialized = true;\
@@ -40,14 +40,14 @@ type* object_pool_##type##_get() {\
     object_pool_##type##_init();\
     return stack_##type##_pop(_stack_##type##_handle);\
 }\
-void object_pool_##type##_free(type* object) {\
-    stack_##type##_push(_stack_##type##_handle, object);\
+void object_pool_##type##_free(type* obj) {\
+    stack_##type##_push(_stack_##type##_handle, obj);\
 }\
 
 #define OBJECT_POOL_DECLARATIONS(type, pool_size)\
-STACK_DECLARATIONS(type);\
+STACK_DECLARATIONS(type)\
 void object_pool_##type##_init();\
 type* object_pool_##type##_get();\
-void object_pool_##type##_free(type* object);\
+void object_pool_##type##_free(type* obj);\
 
 #endif /* OBJECT_POOL_STATIC_H */

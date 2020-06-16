@@ -9,11 +9,12 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef AZURERTOS_CONFIGURATION_H
-#define AZURERTOS_CONFIGURATION_H
+#ifndef ASC_PORT_H
+#define ASC_PORT_H
 
-#define CONFIG_CONNECTION_CREATE_TCP_ENABLED
-#define CONFIG_CONNECTION_CREATE_UDP_ENABLED
-#define CONFIG_CONNECTION_CREATE_ICMP_ENABLED
+#define SECURITY_MODULE_VERSION "0.0.1"
 
-#endif /* AZURERTOS_CONFIGURATION_H */
+// Collectors
+#define COLLECTOR_HEARTBEAT_ENABLED
+
+#endif /* ASC_PORT_H */
