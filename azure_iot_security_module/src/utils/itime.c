@@ -5,6 +5,12 @@
 
 static unix_time_callback_t _time_callback = NULL;
 
+#ifdef ASC_TIME_IAR
+time_t gmtime_s(time_t* timer, struct tm* buf);
+time_t localtime_s(time_t* timer, struct tm* buf);
+#endif // ASC_TIME_IAR
+
+
 void itime_init(unix_time_callback_t time_callback) {
     _time_callback = time_callback;
 }
@@ -26,7 +32,8 @@ struct tm* itime_utcnow(time_t* timer, struct tm* buf) {
     return gmtime_r(timer, buf);
 #endif // _WIN32
 #else // ASC_TIME_IAR
-    return gmtime_s(timer, buf);
+    gmtime_s(timer, buf);
+    return buf;
 #endif // ASC_TIME_IAR
 }
 
@@ -39,7 +46,8 @@ struct tm* itime_localtime(time_t* timer, struct tm* buf) {
     return localtime_r(timer, buf);
 #endif // _WIN32
 #else // ASC_TIME_IAR
-    return localtime_s(timer, buf);
+    localtime_s(timer, buf);
+    return buf;
 #endif // ASC_TIME_IAR
 }
 

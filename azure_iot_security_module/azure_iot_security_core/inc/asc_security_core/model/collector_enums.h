@@ -14,6 +14,8 @@
 
 #include <stdint.h>
 
+#include "asc_security_core/configuration.h"
+
 #define COLLECTOR_NAME_SYSTEM_INFORMATION "SystemInformation"
 #define COLLECTOR_NAME_CONNECTION_CREATE "ConnectionCreate"
 #define COLLECTOR_NAME_LISTENING_PORTS "ListeningPorts"

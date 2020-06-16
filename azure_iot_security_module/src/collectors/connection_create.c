@@ -17,6 +17,7 @@
 #include "nx_udp.h"
 #include "tx_api.h"
 
+#include "asc_security_core/configuration.h"
 #include "asc_security_core/collectors/connection_create.h"
 #include "asc_security_core/logger.h"
 #include "asc_security_core/message_schema_consts.h"
@@ -25,7 +26,6 @@
 #include "asc_security_core/utils/notifier.h"
 #include "asc_security_azurertos/collectors/connection_create_port.h"
 
-#include "asc_security_azurertos/azurertos_configuration.h"
 
 /**
  * @brief   Switch between the 2 hashtables.
@@ -94,6 +94,7 @@ IOTSECURITY_RESULT collector_connection_create_init(collector_internal_t* collec
 
     _collector_internal_ptr = collector_internal_ptr;
 
+    strncpy(_collector_internal_ptr->name, CONNECTION_CREATE_NAME, COLLECTOR_NAME_LENGTH);
     _collector_internal_ptr->collect_function = _collector_connection_create_get_events;
     _collector_internal_ptr->deinit_function = _collector_connection_create_deinit;
     _collector_internal_ptr->priority = COLLECTOR_PRIORITY_HIGH;
@@ -126,6 +127,7 @@ static IOTSECURITY_RESULT _collector_connection_create_get_events(collector_inte
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
     event_t* event_ptr = NULL;
     linked_list_connection_create_t payload_list;
+    linked_list_connection_create_t* payload_list_ptr = NULL;
 
     if (_collector_internal_ptr == NULL) {
         log_error("Collector%s uninitialized, cannot collect", CONNECTION_CREATE_NAME);
@@ -144,8 +146,9 @@ static IOTSECURITY_RESULT _collector_connection_create_get_events(collector_inte
     connection_create_t** previous_hashtable = _current_hashtable;
     _collector_connection_create_switch_hashtables();
 
-    linked_list_connection_create_t_init(&payload_list, schema_connection_create_deinit);
-    hashset_connection_create_t_clear(previous_hashtable, _collector_connection_create_append_payload_to_list, &payload_list);
+    payload_list_ptr = &payload_list;
+    linked_list_connection_create_t_init(payload_list_ptr, schema_connection_create_deinit);
+    hashset_connection_create_t_clear(previous_hashtable, _collector_connection_create_append_payload_to_list, payload_list_ptr);
 
     event_ptr = event_init(CONNECTION_CREATE_PAYLOAD_SCHEMA_VERSION, CONNECTION_CREATE_NAME, EVENT_TRIGGERED_CATEGORY, EVENT_TYPE_SECURITY_VALUE, current_time);
     if (event_ptr == NULL) {
@@ -154,10 +157,10 @@ static IOTSECURITY_RESULT _collector_connection_create_get_events(collector_inte
         goto cleanup;
     }
 
-    while (linked_list_connection_create_t_get_size(&payload_list) > 0) {
-        connection_create_t* data_handle = linked_list_connection_create_t_get_first(&payload_list);
+    while (linked_list_connection_create_t_get_size(payload_list_ptr) > 0) {
+        connection_create_t* data_handle = linked_list_connection_create_t_get_first(payload_list_ptr);
         if (event_append_connection_create(event_ptr, data_handle) == IOTSECURITY_RESULT_OK) {
-            schema_connection_create_deinit(linked_list_connection_create_t_remove_first(&payload_list));
+            schema_connection_create_deinit(linked_list_connection_create_t_remove_first(payload_list_ptr));
         } else {
             result = event_build(event_ptr);
             if (result != IOTSECURITY_RESULT_OK) {
@@ -197,7 +200,7 @@ cleanup:
         event_ptr = NULL;
     }
 
-    linked_list_connection_create_t_deinit(&payload_list);
+    linked_list_connection_create_t_deinit(payload_list_ptr);
 
     return result;
 }

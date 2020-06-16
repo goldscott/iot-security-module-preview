@@ -30,8 +30,8 @@ typedef struct schema_system_information {
     uint32_t memory_free_physical_in_kb;
 } schema_system_information_t;
 
-OBJECT_POOL_DECLARATIONS(schema_system_information_t, SCHEMA_SYSTEM_INFORMATION_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(schema_system_information_t, SCHEMA_SYSTEM_INFORMATION_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(schema_system_information_t, SCHEMA_SYSTEM_INFORMATION_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(schema_system_information_t, SCHEMA_SYSTEM_INFORMATION_OBJECT_POOL_COUNT)
 
 
 system_information_t* schema_system_information_init() {

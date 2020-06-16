@@ -21,7 +21,7 @@
 #include "asc_security_core/utils/string_utils.h"
 
 
-typedef struct message {
+struct message {
     COLLECTION_INTERFACE(struct message);
 
     // buffer workspace
@@ -38,10 +38,10 @@ typedef struct message {
     asc_span agent_version;
     asc_span message_schema_version;
 
-} message_t;
+};
 
-OBJECT_POOL_DECLARATIONS(message_t, MESSAGE_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(message_t, MESSAGE_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(message_t, MESSAGE_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(message_t, MESSAGE_OBJECT_POOL_COUNT)
 
 /**
  * @brief Build the message
@@ -61,6 +61,7 @@ message_t* message_init(const char* agent_id, const char* agent_version) {
     );
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
     message_t* message_ptr = NULL;
+    asc_json_builder* builder;
 
     if (string_utils_is_blank(agent_id) || string_utils_is_blank(agent_version)) {
         log_error("Failed to create a new message due to bad argument");
@@ -82,7 +83,6 @@ message_t* message_init(const char* agent_id, const char* agent_version) {
     message_ptr->has_events = false;
     memset(message_ptr->buffer, 0, message_get_capacity(message_ptr));
 
-    asc_json_builder* builder = NULL;
     builder = &message_ptr->builder;
 
     if (asc_json_builder_init(builder, ASC_SPAN_FROM_BUFFER(message_ptr->buffer)) != ASC_OK) {
@@ -162,6 +162,7 @@ MESSAGE_STATUS message_get_status(message_t* message_ptr) {
 
 static IOTSECURITY_RESULT _message_build(message_t* message_ptr) {
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
+    asc_json_builder* builder;
 
     if (message_ptr == NULL) {
         result = IOTSECURITY_RESULT_BAD_ARGUMENT;
@@ -183,7 +184,7 @@ static IOTSECURITY_RESULT _message_build(message_t* message_ptr) {
             break;
     }
 
-    asc_json_builder* builder = &message_ptr->builder;
+    builder = &message_ptr->builder;
 
     if (asc_json_builder_append_token(builder, asc_json_token_array_end()) != ASC_OK) {
         log_error("Failed to close json array, property=[%s]", EVENT_ID_KEY);
@@ -270,6 +271,8 @@ cleanup:
 
 IOTSECURITY_RESULT message_append(message_t* message_ptr, event_t* event_ptr) {
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
+    asc_json_builder* builder;
+    asc_span event;
 
     if (message_ptr == NULL) {
         result = IOTSECURITY_RESULT_BAD_ARGUMENT;
@@ -278,7 +281,7 @@ IOTSECURITY_RESULT message_append(message_t* message_ptr, event_t* event_ptr) {
     }
 
     // Retrieve the asc_json_builder
-    asc_json_builder* builder = &message_ptr->builder;
+    builder = &message_ptr->builder;
 
     if (!message_can_append(message_ptr, event_ptr)) {
         log_error("the event exceeded the size of the message");
@@ -293,7 +296,7 @@ IOTSECURITY_RESULT message_append(message_t* message_ptr, event_t* event_ptr) {
         goto cleanup;
     }
 
-    asc_span event = asc_span_from_str(event_data);
+    event = asc_span_from_str(event_data);
 
     if (asc_json_builder_append_array_item(builder, asc_json_token_object(event)) != ASC_OK) {
         log_error("Failed to append event to message");

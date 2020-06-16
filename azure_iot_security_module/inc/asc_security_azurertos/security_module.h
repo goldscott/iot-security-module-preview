@@ -12,14 +12,7 @@
 #ifndef SECURITY_MODULE_H
 #define SECURITY_MODULE_H
 
-/* Required. */
-#ifndef SECURITY_MODULE_VERSION
-// #error "Azure Security Module required version."
-#define SECURITY_MODULE_VERSIONN     "0.0.0-azrtos"
-#else
-#define SECURITY_MODULE_VERSIONN     SECURITY_MODULE_VERSION"-azrtos"
-#endif /* SECURITY_MODULE_VERSION */
-// TODO solve redefind version
+#include "asc_security_azurertos/version.h"
 
 #ifndef NX_ENABLE_IP_PACKET_FILTER
 #error "Azure Security Module is not supported if NX_ENABLE_IP_PACKET_FILTER is not defined."

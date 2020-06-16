@@ -135,6 +135,7 @@ cleanup:
 
 static IOTSECURITY_RESULT _collect_operation_system_information(collector_internal_t* collector_internal_ptr, system_information_t* data_ptr) {
     log_debug("Start _Collector%s_CollectOperationSystemInformation", SYSTEM_INFORMATION_NAME);
+    int i;
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
     collectors_info_handle collectors_info = (collectors_info_handle)collector_internal_ptr->state;
 
@@ -160,6 +161,11 @@ static IOTSECURITY_RESULT _collect_operation_system_information(collector_intern
     if (result != IOTSECURITY_RESULT_OK) {
         log_error("schema_system_information_set_os_hostname failed, result=[%d]", result);
         goto cleanup;
+    }
+
+    for (i = 1; i < SYSTEM_INFORMATION_SCHEMA_EXTRA_DETAILS_ENTRIES; i++) {
+        extra_details[i].key = ASC_SPAN_NULL;
+        extra_details[i].value = ASC_SPAN_NULL;
     }
 
     collectors_info_append(collectors_info, extra_details, SYSTEM_INFORMATION_SCHEMA_EXTRA_DETAILS_ENTRIES);

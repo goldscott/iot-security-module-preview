@@ -53,8 +53,8 @@ struct event {
     bool is_empty;
 };
 
-OBJECT_POOL_DEFINITIONS(event_t, EVENT_OBJECT_POOL_COUNT);
-LINKED_LIST_DEFINITIONS(event_t);
+OBJECT_POOL_DEFINITIONS(event_t, EVENT_OBJECT_POOL_COUNT)
+LINKED_LIST_DEFINITIONS(event_t)
 
 static IOTSECURITY_RESULT _event_set_status(event_t* event_ptr, EVENT_STATUS status);
 IOTSECURITY_RESULT _event_populate_extra_details(asc_json_builder* builder, asc_pair* extra_details, uint8_t extra_details_length);
@@ -70,6 +70,8 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
 
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
     event_t* event_ptr = NULL;
+    char event_id[EVENT_ID_SIZE];
+    asc_json_builder* builder;
 
     if (string_utils_is_blank(payload_schema_version) ||
         string_utils_is_blank(name) ||
@@ -89,7 +91,7 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
     }
     memset(event_ptr, 0, sizeof(event_t));
 
-    char event_id[EVENT_ID_SIZE] = "";
+    event_id[0] = '\0';
     if (iuuid_generate(event_id) != 0) {
         log_error("Failed to generate a new UUID");
         result = IOTSECURITY_RESULT_EXCEPTION;
@@ -105,7 +107,7 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
     event_ptr->local_time = local_time;
     event_ptr->status = EVENT_STATUS_PROCESSING;
 
-    asc_json_builder* builder = &event_ptr->builder;
+    builder = &event_ptr->builder;
 
     if (asc_json_builder_init(builder, ASC_SPAN_FROM_BUFFER(event_ptr->buffer)) != ASC_OK) {
         log_error("Failed to create a new event");
@@ -148,9 +150,9 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
         result = IOTSECURITY_RESULT_EXCEPTION;
         goto cleanup;
     }
-
-    char time_str[RECORD_TIME_PROPERTY_MAX_LENGTH] = { 0 };
+    
     {
+        char time_str[RECORD_TIME_PROPERTY_MAX_LENGTH] = { 0 };
         // set event local_time
         struct tm localtime = { 0 };
         if (itime_localtime(&local_time, &localtime) == NULL) {
@@ -169,13 +171,11 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
             result = IOTSECURITY_RESULT_EXCEPTION;
             goto cleanup;
         }
-
-        // clear buffer
-        memset(time_str, 0, RECORD_TIME_PROPERTY_MAX_LENGTH);
     }
 
 
     {
+        char time_str[RECORD_TIME_PROPERTY_MAX_LENGTH] = { 0 };
         // set event utc time
         struct tm utcnow = { 0 };
         if (itime_utcnow(&local_time, &utcnow) == NULL) {
@@ -194,9 +194,6 @@ event_t* event_init(const char* payload_schema_version, const char* name, const 
             result = IOTSECURITY_RESULT_EXCEPTION;
             goto cleanup;
         }
-
-        // clear buffer
-        memset(time_str, 0, RECORD_TIME_PROPERTY_MAX_LENGTH);
     }
 
     if (asc_json_builder_append_object(builder, asc_span_from_str((char*)PAYLOAD_KEY), asc_json_token_array_start()) != ASC_OK) {
@@ -290,6 +287,7 @@ EVENT_STATUS event_get_status(event_t* event_ptr) {
 
 IOTSECURITY_RESULT event_build(event_t* event_ptr) {
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
+    asc_json_builder* builder;
 
     if (event_ptr == NULL) {
         result = IOTSECURITY_RESULT_BAD_ARGUMENT;
@@ -311,7 +309,7 @@ IOTSECURITY_RESULT event_build(event_t* event_ptr) {
             break;
     }
 
-    asc_json_builder* builder = &event_ptr->builder;
+    builder = &event_ptr->builder;
 
     builder->_internal.json._internal.capacity += (int32_t)EVENT_END_SIZE;
 
@@ -550,89 +548,92 @@ IOTSECURITY_RESULT event_append_system_information(event_t* event_ptr, system_in
         goto cleanup;
     }
 
-    // create temporary asc_json_builder in order to attach payload to the event iff no error occured
-    uint8_t buffer[ASC_PAYLOAD_MAX_SIZE];
-    memset(buffer, 0, ASC_PAYLOAD_MAX_SIZE);
-    asc_json_builder builder = { 0 };
+    {
+        // create temporary asc_json_builder in order to attach payload to the event iff no error occured
+        uint8_t buffer[ASC_PAYLOAD_MAX_SIZE] = {0};
+        memset(buffer, 0, ASC_PAYLOAD_MAX_SIZE);
+    
+        asc_json_builder builder = { 0 };
 
-    if (asc_json_builder_init(&builder, ASC_SPAN_FROM_BUFFER(buffer)) != ASC_OK) {
-        log_error("Failed to create payload builder");
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_token(&builder, asc_json_token_object_start()) != ASC_OK) {
-        log_error("Failed to initialize SystemInformation record JSON Value");
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_NAME_KEY), asc_json_token_string(os_name)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_NAME_KEY, asc_span_length(os_name), asc_span_ptr(os_name));
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_VERSION_KEY), asc_json_token_string(os_version)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_VERSION_KEY, asc_span_length(os_version), asc_span_ptr(os_version));
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_ARCHITECTURE_KEY), asc_json_token_string(os_architecture)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_ARCHITECTURE_KEY, asc_span_length(os_architecture), asc_span_ptr(os_architecture));
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_HOST_NAME_KEY), asc_json_token_string(hostname)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_HOST_NAME_KEY, asc_span_length(hostname), asc_span_ptr(hostname));
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_TOTAL_PHYSICAL_MEMORY_KEY), asc_json_token_number(memory_total_physical_in_kb)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%d]", SYSTEM_INFORMATION_TOTAL_PHYSICAL_MEMORY_KEY, memory_total_physical_in_kb);
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_FREE_PHYSICAL_MEMORY_KEY), asc_json_token_number(memory_free_physical_in_kb)) != ASC_OK) {
-        log_error("Failed to set string key=[%s], value=[%d]", SYSTEM_INFORMATION_FREE_PHYSICAL_MEMORY_KEY, memory_free_physical_in_kb);
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    result = _event_populate_extra_details(&builder, schema_system_information_get_extra_details(data_ptr), SYSTEM_INFORMATION_SCHEMA_EXTRA_DETAILS_ENTRIES);
-    if (result != IOTSECURITY_RESULT_OK) {
-        log_error("Failed to populate extra details to the event, result=[%d]", result);
-        goto cleanup;
-    }
-
-    if (asc_json_builder_append_token(&builder, asc_json_token_object_end()) != ASC_OK) {
-        log_error("Failed to close object");
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
-    }
-
-    if (event_can_append(event_ptr, builder._internal.json)) {
-        // append payload to the event
-        if (asc_json_builder_append_token(&event_ptr->builder, asc_json_token_object(builder._internal.json)) != ASC_OK) {
-            log_error("Failed to append payload to event");
+        if (asc_json_builder_init(&builder, ASC_SPAN_FROM_BUFFER(buffer)) != ASC_OK) {
+            log_error("Failed to create payload builder");
             result = IOTSECURITY_RESULT_EXCEPTION;
-
-            // event might be corrupted
-            _event_set_status(event_ptr, EVENT_STATUS_EXCEPTION);
-
             goto cleanup;
         }
 
-        // Set the event as non empty
-        event_ptr->is_empty = false;
-    } else {
-        // payload exceeds event capacity
-        result = IOTSECURITY_RESULT_EXCEPTION;
-        goto cleanup;
+        if (asc_json_builder_append_token(&builder, asc_json_token_object_start()) != ASC_OK) {
+            log_error("Failed to initialize SystemInformation record JSON Value");
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_NAME_KEY), asc_json_token_string(os_name)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_NAME_KEY, asc_span_length(os_name), asc_span_ptr(os_name));
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_VERSION_KEY), asc_json_token_string(os_version)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_VERSION_KEY, asc_span_length(os_version), asc_span_ptr(os_version));
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_OS_ARCHITECTURE_KEY), asc_json_token_string(os_architecture)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_OS_ARCHITECTURE_KEY, asc_span_length(os_architecture), asc_span_ptr(os_architecture));
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_HOST_NAME_KEY), asc_json_token_string(hostname)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%.*s]", SYSTEM_INFORMATION_HOST_NAME_KEY, asc_span_length(hostname), asc_span_ptr(hostname));
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_TOTAL_PHYSICAL_MEMORY_KEY), asc_json_token_number(memory_total_physical_in_kb)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%d]", SYSTEM_INFORMATION_TOTAL_PHYSICAL_MEMORY_KEY, memory_total_physical_in_kb);
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)SYSTEM_INFORMATION_FREE_PHYSICAL_MEMORY_KEY), asc_json_token_number(memory_free_physical_in_kb)) != ASC_OK) {
+            log_error("Failed to set string key=[%s], value=[%d]", SYSTEM_INFORMATION_FREE_PHYSICAL_MEMORY_KEY, memory_free_physical_in_kb);
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        result = _event_populate_extra_details(&builder, schema_system_information_get_extra_details(data_ptr), SYSTEM_INFORMATION_SCHEMA_EXTRA_DETAILS_ENTRIES);
+        if (result != IOTSECURITY_RESULT_OK) {
+            log_error("Failed to populate extra details to the event, result=[%d]", result);
+            goto cleanup;
+        }
+
+        if (asc_json_builder_append_token(&builder, asc_json_token_object_end()) != ASC_OK) {
+            log_error("Failed to close object");
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
+
+        if (event_can_append(event_ptr, builder._internal.json)) {
+            // append payload to the event
+            if (asc_json_builder_append_token(&event_ptr->builder, asc_json_token_object(builder._internal.json)) != ASC_OK) {
+                log_error("Failed to append payload to event");
+                result = IOTSECURITY_RESULT_EXCEPTION;
+
+                // event might be corrupted
+                _event_set_status(event_ptr, EVENT_STATUS_EXCEPTION);
+
+                goto cleanup;
+            }
+
+            // Set the event as non empty
+            event_ptr->is_empty = false;
+        } else {
+            // payload exceeds event capacity
+            result = IOTSECURITY_RESULT_EXCEPTION;
+            goto cleanup;
+        }
     }
 
 cleanup:
@@ -653,6 +654,10 @@ static IOTSECURITY_RESULT _event_append_connection_create_with_direction(event_t
     uint8_t buffer[ASC_PAYLOAD_MAX_SIZE] = { 0 };
     memset(buffer, 0, ASC_PAYLOAD_MAX_SIZE);
     asc_json_builder builder = { 0 };
+    char tmp_buffer[MAX_IPV6_STRING_LENGTH] = { 0 };
+    TRANSPORT_PROTOCOL transport_protocol;
+    asc_span protocol_value;
+    asc_span direction_value;
 
     if (asc_json_builder_init(&builder, ASC_SPAN_FROM_BUFFER(buffer)) != ASC_OK) {
         log_error("Failed to create a new payload");
@@ -667,7 +672,6 @@ static IOTSECURITY_RESULT _event_append_connection_create_with_direction(event_t
     }
 
     // Serialize local ip address
-    char tmp_buffer[MAX_IPV6_STRING_LENGTH] = { 0 };
     schema_connection_create_serialize_local_ip(data_ptr, tmp_buffer);
     if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)CONNECTION_CREATE_LOCAL_ADDRESS_KEY), asc_json_token_string(asc_span_from_str(tmp_buffer))) != ASC_OK) {
         log_error("Failed to set string key=[%s], value=[%s]", CONNECTION_CREATE_LOCAL_ADDRESS_KEY, tmp_buffer);
@@ -685,8 +689,8 @@ static IOTSECURITY_RESULT _event_append_connection_create_with_direction(event_t
     }
 
     // Serialize protocol type
-    TRANSPORT_PROTOCOL transport_protocol = schema_connection_create_get_transport_protocol(data_ptr);
-    asc_span protocol_value = asc_span_from_str((char*)transport_protocol_to_str(transport_protocol));
+    transport_protocol = schema_connection_create_get_transport_protocol(data_ptr);
+    protocol_value = asc_span_from_str((char*)transport_protocol_to_str(transport_protocol));
     if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)CONNECTION_CREATE_PROTOCOL_KEY), asc_json_token_string(protocol_value)) != ASC_OK) {
         log_error("Failed to set string key=[%s], value=[%s]", CONNECTION_CREATE_PROTOCOL_KEY, tmp_buffer);
         result = IOTSECURITY_RESULT_EXCEPTION;
@@ -714,7 +718,7 @@ static IOTSECURITY_RESULT _event_append_connection_create_with_direction(event_t
     }
 
     // Serialize connection direction
-    asc_span direction_value = asc_span_from_str((char*)direction);
+    direction_value = asc_span_from_str((char*)direction);
     if (asc_json_builder_append_object(&builder, asc_span_from_str((char*)CONNECTION_CREATE_DIRECTION_KEY), asc_json_token_string(direction_value)) != ASC_OK) {
         log_error("Failed to set string key=[%s], value=[%s]", CONNECTION_CREATE_DIRECTION_KEY, tmp_buffer);
         result = IOTSECURITY_RESULT_EXCEPTION;

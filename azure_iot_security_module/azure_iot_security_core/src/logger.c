@@ -25,10 +25,19 @@ void logger_deinit() {
 }
 
 
-void logger_log(const char* message, ...) {
+void logger_log(const char* level, ...) {
+    char *fmt = NULL;
+
+    printf(MDC_FORMAT , level, __FILENAME__, __func__, __LINE__);
+
     va_list args;
-    va_start(args, message);
-    vprintf(message, args);
+    va_start(args, level);
+    if (!fmt) {
+        fmt = va_arg(args, char *);
+    }
+    vprintf(fmt, args);
     va_end(args);
+
+    printf("\n");
 }
 #endif

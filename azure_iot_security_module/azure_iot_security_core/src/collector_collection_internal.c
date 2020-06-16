@@ -79,8 +79,9 @@ static IOTSECURITY_RESULT collector_collection_internal_set_random_collected_tim
             result = IOTSECURITY_RESULT_EXCEPTION;
             goto cleanup;
         }
+        time_t delta = (time_t)(irand_int() % (2 * interval) + interval);
 
-        collector_set_last_collected_timestamp(collector_ptr, itime_time(NULL) - (irand_int() % (2 * interval) + interval));
+        collector_set_last_collected_timestamp(collector_ptr, current_time - delta);
         collector_ptr = collector_ptr->next;
     }
 

@@ -23,10 +23,10 @@ typedef struct {
 	void *payload;
 } notify_param_t;
 
-LINKED_LIST_DECLARATIONS(notifier_item_t);
-LINKED_LIST_DEFINITIONS(notifier_item_t);
-OBJECT_POOL_DECLARATIONS(notifier_item_t, NOTIFIERS_POOL_ENTRIES);
-OBJECT_POOL_DEFINITIONS(notifier_item_t, NOTIFIERS_POOL_ENTRIES);
+LINKED_LIST_DECLARATIONS(notifier_item_t)
+LINKED_LIST_DEFINITIONS(notifier_item_t)
+OBJECT_POOL_DECLARATIONS(notifier_item_t, NOTIFIERS_POOL_ENTRIES)
+OBJECT_POOL_DEFINITIONS(notifier_item_t, NOTIFIERS_POOL_ENTRIES)
 
 static linked_list_notifier_item_t _notify_arr[NOTIFY_TOPICS_NUMBER] = {0};
 

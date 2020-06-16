@@ -30,19 +30,19 @@ typedef struct schema_connection_create {
     union {
         uint32_t local_ipv4;
         uint32_t local_ipv6[4];
-    };
+    } l;
     union {
         uint32_t remote_ipv4;
         uint32_t remote_ipv6[4];
-    };
+    } r;
     uint16_t local_port;
     uint16_t remote_port;
     NETWORK_PROTOCOL network_protocol;
     TRANSPORT_PROTOCOL transport_protocol;
 } schema_connection_create_t;
 
-OBJECT_POOL_DECLARATIONS(schema_connection_create_t, SCHEMA_CONNECTION_CREATE_OBJECT_POOL_COUNT);
-OBJECT_POOL_DEFINITIONS(schema_connection_create_t, SCHEMA_CONNECTION_CREATE_OBJECT_POOL_COUNT);
+OBJECT_POOL_DECLARATIONS(schema_connection_create_t, SCHEMA_CONNECTION_CREATE_OBJECT_POOL_COUNT)
+OBJECT_POOL_DEFINITIONS(schema_connection_create_t, SCHEMA_CONNECTION_CREATE_OBJECT_POOL_COUNT)
 
 static IOTSECURITY_RESULT _schema_connection_create_serialize_ip(connection_create_t* data_ptr, char* buffer, bool local);
 
@@ -65,8 +65,8 @@ const char* transport_protocol_to_str(TRANSPORT_PROTOCOL protocol) {
     return ret;
 }
 
-LINKED_LIST_DEFINITIONS(connection_create_t);
-HASHSET_DEFINITIONS(connection_create_t, CONNECTION_CREATE_HASHSET_SIZE);
+LINKED_LIST_DEFINITIONS(connection_create_t)
+HASHSET_DEFINITIONS(connection_create_t, CONNECTION_CREATE_HASHSET_SIZE)
 
 
 int hashset_connection_create_t_equals(connection_create_t* a, connection_create_t* b) {
@@ -80,13 +80,13 @@ int hashset_connection_create_t_equals(connection_create_t* a, connection_create
         );
     if (a->network_protocol == NETWORK_PROTOCOL_IPV4) {
         return (result &&
-            a->local_ipv4 == b->local_ipv4 &&
-            a->remote_ipv4 == b->remote_ipv4
+            a->l.local_ipv4 == b->l.local_ipv4 &&
+            a->r.remote_ipv4 == b->r.remote_ipv4
         );
     } else { // IPv6
         return (result &&
-            IPV6_ADDRESS_EQUALS(a->local_ipv6, b->local_ipv6) &&
-            IPV6_ADDRESS_EQUALS(a->remote_ipv6, b->remote_ipv6)
+            IPV6_ADDRESS_EQUALS(a->l.local_ipv6, b->l.local_ipv6) &&
+            IPV6_ADDRESS_EQUALS(a->r.remote_ipv6, b->r.remote_ipv6)
         );
     }
 }
@@ -95,11 +95,11 @@ int hashset_connection_create_t_equals(connection_create_t* a, connection_create
 unsigned int hashset_connection_create_t_hash(connection_create_t* data_ptr) {
     unsigned int result = 0;
     if (data_ptr->network_protocol == NETWORK_PROTOCOL_IPV4) {
-        result ^= data_ptr->local_ipv4;
-        result ^= data_ptr->remote_ipv4;
+        result ^= data_ptr->l.local_ipv4;
+        result ^= data_ptr->r.remote_ipv4;
     } else { // IPv6
-        result ^= IPV6_ADDRESS_HASH(data_ptr->local_ipv6);
-        result ^= IPV6_ADDRESS_HASH(data_ptr->remote_ipv6);
+        result ^= IPV6_ADDRESS_HASH(data_ptr->l.local_ipv6);
+        result ^= IPV6_ADDRESS_HASH(data_ptr->r.remote_ipv6);
     }
 
     result ^= (unsigned int)(((data_ptr->local_port << 16) | data_ptr->remote_port));
@@ -148,8 +148,8 @@ connection_create_t* schema_connection_create_create_ipv4(uint32_t bytes_in, uin
 
     data_ptr->bytes_in = bytes_in;
     data_ptr->bytes_out = bytes_out;
-    data_ptr->local_ipv4 = local_ip;
-    data_ptr->remote_ipv4 = remote_ip;
+    data_ptr->l.local_ipv4 = local_ip;
+    data_ptr->r.remote_ipv4 = remote_ip;
 
     if (transport_protocol != TRANSPORT_PROTOCOL_ICMP) {
         data_ptr->local_port = local_port;
@@ -174,8 +174,8 @@ connection_create_t* schema_connection_create_create_ipv6(uint32_t bytes_in, uin
     data_ptr->bytes_in = bytes_in;
     data_ptr->bytes_out = bytes_out;
 
-    IPV6_ADDRESS_COPY(local_ip, data_ptr->local_ipv6);
-    IPV6_ADDRESS_COPY(remote_ip, data_ptr->remote_ipv6);
+    IPV6_ADDRESS_COPY(local_ip, data_ptr->l.local_ipv6);
+    IPV6_ADDRESS_COPY(remote_ip, data_ptr->r.remote_ipv6);
 
     if (transport_protocol != TRANSPORT_PROTOCOL_ICMP) {
         data_ptr->local_port = local_port;
@@ -231,13 +231,15 @@ void schema_connection_create_log_info(connection_create_t* data_ptr) {
 
 static IOTSECURITY_RESULT _schema_connection_create_serialize_ip(connection_create_t* data_ptr, char* buffer, bool local) {
     IOTSECURITY_RESULT result = IOTSECURITY_RESULT_OK;
+    const void* source;
+
     if (data_ptr == NULL || buffer == NULL) {
         log_error("ConnectionCreateSchema failed to serialize IP address");
         result = IOTSECURITY_RESULT_BAD_ARGUMENT;
         goto cleanup;
     }
 
-    const void* source = local ? data_ptr->local_ipv6 : data_ptr->remote_ipv6;
+    source = local ? data_ptr->l.local_ipv6 : data_ptr->r.remote_ipv6;
 
     if (network_utils_inet_ntop(data_ptr->network_protocol, source, buffer, MAX_IPV6_STRING_LENGTH) == NULL) {
         log_error("ConnectionCreateSchema failed to serialize IP address");
@@ -316,7 +318,7 @@ uint32_t schema_connection_create_get_local_ipv4(connection_create_t* data_ptr) 
     uint32_t result = 0;
 
     if (data_ptr != NULL) {
-        result = data_ptr->local_ipv4;
+        result = data_ptr->l.local_ipv4;
     }
 
     return result;
@@ -332,7 +334,7 @@ IOTSECURITY_RESULT schema_connection_create_set_local_ipv4(connection_create_t* 
         goto cleanup;
     }
 
-    data_ptr->local_ipv4 = local_ipv4;
+    data_ptr->l.local_ipv4 = local_ipv4;
 
 cleanup:
     if (result != IOTSECURITY_RESULT_OK) {
@@ -348,7 +350,7 @@ IOTSECURITY_RESULT schema_connection_create_get_local_ipv6(connection_create_t* 
         return IOTSECURITY_RESULT_BAD_ARGUMENT;
     }
 
-    IPV6_ADDRESS_COPY(data_ptr->local_ipv6, local_ipv6);
+    IPV6_ADDRESS_COPY(data_ptr->l.local_ipv6, local_ipv6);
 
     return IOTSECURITY_RESULT_OK;
 }
@@ -359,7 +361,7 @@ IOTSECURITY_RESULT schema_connection_create_set_local_ipv6(connection_create_t* 
         return IOTSECURITY_RESULT_BAD_ARGUMENT;
     }
 
-    IPV6_ADDRESS_COPY(local_ipv6, data_ptr->local_ipv6);
+    IPV6_ADDRESS_COPY(local_ipv6, data_ptr->l.local_ipv6);
 
     return IOTSECURITY_RESULT_OK;
 }
@@ -400,7 +402,7 @@ uint32_t schema_connection_create_get_remote_ipv4(connection_create_t* data_ptr)
     uint32_t result = 0;
 
     if (data_ptr != NULL) {
-        result = data_ptr->remote_ipv4;
+        result = data_ptr->r.remote_ipv4;
     }
 
     return result;
@@ -416,7 +418,7 @@ IOTSECURITY_RESULT schema_connection_create_set_remote_ipv4(connection_create_t*
         goto cleanup;
     }
 
-    data_ptr->remote_ipv4 = remote_ipv4;
+    data_ptr->r.remote_ipv4 = remote_ipv4;
 
 cleanup:
     if (result != IOTSECURITY_RESULT_OK) {
@@ -432,7 +434,7 @@ IOTSECURITY_RESULT schema_connection_create_get_remote_ipv6(connection_create_t*
         return IOTSECURITY_RESULT_BAD_ARGUMENT;
     }
 
-    IPV6_ADDRESS_COPY(data_ptr->remote_ipv6, remote_ipv6);
+    IPV6_ADDRESS_COPY(data_ptr->r.remote_ipv6, remote_ipv6);
 
     return IOTSECURITY_RESULT_OK;
 }
@@ -443,7 +445,7 @@ IOTSECURITY_RESULT schema_connection_create_set_remote_ipv6(connection_create_t*
         return IOTSECURITY_RESULT_BAD_ARGUMENT;
     }
 
-    IPV6_ADDRESS_COPY(remote_ipv6, data_ptr->remote_ipv6);
+    IPV6_ADDRESS_COPY(remote_ipv6, data_ptr->r.remote_ipv6);
 
     return IOTSECURITY_RESULT_OK;
 }

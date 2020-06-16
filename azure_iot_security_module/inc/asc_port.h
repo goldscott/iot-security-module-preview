@@ -9,21 +9,27 @@
 /*                                                                        */
 /**************************************************************************/
 
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef ASC_PORT_H
+#define ASC_PORT_H
 
-#include "asc_security_core/version.h"
-
-#ifndef DISABLE_ASC_PORT
-#include "asc_port.h"
-#else
-#include "asc_security_core/no_platform/asc_port.h"
-#endif /* DISABLE_ASC_PORT */
+#include "asc_security_azurertos/version.h"
 
 // Security Module ID - A unique identifier of the device
 #ifndef ASC_SECURITY_MODULE_ID
 #define ASC_SECURITY_MODULE_ID "asc_security_module"
 #endif
+
+// Use stack memory instead of heap memory
+#define USE_DYNAMIC_MEMORY
+
+// Collectors
+#define COLLECTOR_HEARTBEAT_ENABLED
+#define COLLECTOR_SYSTEM_INFORMATION_ENABLED
+
+#define COLLECTOR_CONNECTION_CREATE_ENABLED
+#define CONFIG_CONNECTION_CREATE_TCP_ENABLED
+#define CONFIG_CONNECTION_CREATE_UDP_ENABLED
+#define CONFIG_CONNECTION_CREATE_ICMP_ENABLED
 
 // Collection interval for high priority events, in seconds
 #ifndef ASC_HIGH_PRIORITY_INTERVAL
@@ -47,12 +53,12 @@
 
 // The maximum number of security events to store in memory
 #ifndef ASC_CORE_MAX_EVENTS_IN_MEMORY
-#define ASC_CORE_MAX_EVENTS_IN_MEMORY 200
+#define ASC_CORE_MAX_EVENTS_IN_MEMORY 32
 #endif
 
 // The maximum size of a security message (IoT Hub message max size is 262144)
 #ifndef ASC_MESSAGE_MAX_SIZE
-#define ASC_MESSAGE_MAX_SIZE 262144
+#define ASC_MESSAGE_MAX_SIZE 6128
 #endif
 
 // The maximum size of a security event
@@ -85,4 +91,4 @@
 #define ASC_COLLECTOR_HEARTBEAT_MAX_OBJECTS_IN_CACHE 1
 #endif
 
-#endif /* CONFIGURATION_H */
+#endif /* ASC_PORT_H */
