@@ -25,6 +25,25 @@ The following board specific guides will get you started with Azure RTOS and IoT
 
 If you believe you have found a security vulnerability in any Microsoft-owned repository that meets Microsoft's Microsoft's definition of a security vulnerability, please report it to the [Microsoft Security Response Center](SECURITY.md).
 
-## Contribution, feedback and issues
-If you encounter any bugs, have suggestions for new features or if you would like to become an active contributor to this project please follow the instructions provided in the contribution guideline for the corresponding repo.
-For general support, please post a question to [Stack Overflow](http://stackoverflow.com/questions/tagged/azure-rtos) using the `azure-rtos` tags.
+# Licensing
+
+License terms for using Azure RTOS are defined in the LICENSE.txt file of this repo. Please refer to this file for all definitive licensing information. No additional license fees are required for deploying Azure RTOS on hardware defined in the LICENSED-HARDWARE.txt file. If you are using hardware not defined in the LICENSED-HARDWARE.txt file or have licensing questions in general, please contact Microsoft directly at https://azure-rtos.ms-iot-contact.com/
+
+# Contribution, feedback, issues, and professional support
+
+If you encounter any bugs, have suggestions for new features, or if you would like to become an active contributor to this project, please follow the instructions provided in the contribution guideline for the corresponding repo.
+
+For basic support, click Issues in the command bar or post a question to [Stack Overflow](http://stackoverflow.com/questions/tagged/azure-rtos+threadx) using the `threadx` and `azure-rtos` tags.
+
+Professional support plans (https://azure.microsoft.com/en-us/support/options/) are available from Microsoft.
+
+# Additional Resources
+
+The following are references to additional Azure RTOS and Azure IoT in general:
+|   |   |
+|---|---|
+| Azure RTOS Website: | https://azure.microsoft.com/en-us/services/rtos/ |
+| Azure RTOS Sales Questions: | https://azure-rtos.ms-iot-contact.com/ |
+| Microsoft Q/A for Azure IoT: | https://docs.microsoft.com/en-us/answers/products/azure?product=iot |
+| Internet of Things Show: | https://aka.ms/iotshow |
+| IoT Tech Community: | https://aka.ms/iottechcommunity |
